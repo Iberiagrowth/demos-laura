@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo · Asistente WhatsApp · LauraDiet</title>
+<style>
+  :root{
+    --wa-bg:#0b141a; --wa-header:#202c33; --in:#202c33; --out:#005c4b;
+    --txt:#e9edef; --muted:#8696a0; --gold:#c9a84c; --accent:#00a884;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',system-ui,Roboto,Helvetica,Arial,sans-serif;}
+  body{background:#0a0a0c; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px 12px; color:var(--txt);}
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);}
+  .brand h1{font-size:18px; font-weight:600; color:#fff;}
+  .brand span{color:var(--muted); font-size:13px;}
+  .nota{max-width:430px; width:100%; background:#16161a; border:1px solid #2a2a2e; border-radius:12px;
+        padding:12px 16px; margin-bottom:16px; font-size:13px; color:var(--muted); line-height:1.5;}
+  .nota b{color:var(--gold);}
+  .phone{width:100%; max-width:430px; height:760px; background:var(--wa-bg);
+    border-radius:28px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,.6);
+    border:1px solid #1f2a30; display:flex; flex-direction:column;}
+  .header{background:var(--wa-header); padding:14px 16px; display:flex; align-items:center; gap:12px;}
+  .avatar{width:42px;height:42px;border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),#8a7330);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a1a1a; font-size:15px;}
+  .header .info{flex:1;}
+  .header .name{font-weight:600; font-size:16px;}
+  .header .status{font-size:12px; color:var(--accent);}
+  .header .ico{color:var(--muted); font-size:18px;}
+  .chat{flex:1; overflow-y:auto; padding:18px 14px; background:rgba(11,20,26,.96);
+    display:flex; flex-direction:column; gap:8px;}
+  .day{align-self:center; background:#182229; color:var(--muted); font-size:12px;
+    padding:5px 12px; border-radius:8px; margin:4px 0 8px;}
+  .sys{align-self:center; background:#1d2a26; color:#cfe9df; font-size:12px;
+    padding:8px 14px; border-radius:10px; text-align:center; max-width:92%; line-height:1.4; border:1px solid #224;}
+  .msg{max-width:80%; padding:8px 12px; border-radius:10px; font-size:14.5px; line-height:1.45;
+    position:relative; white-space:pre-wrap; word-wrap:break-word; animation:pop .18s ease;}
+  .in{align-self:flex-start; background:var(--in); border-top-left-radius:2px;}
+  .out{align-self:flex-end; background:var(--out); border-top-right-radius:2px;}
+  .msg .t{display:block; font-size:10.5px; color:rgba(233,237,239,.6); text-align:right; margin-top:3px;}
+  .badge{display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; margin-bottom:5px;}
+  .b-cita{background:#27ae60; color:#fff;}
+  .b-info{background:#2980b9; color:#fff;}
+  .b-pers{background:var(--gold); color:#1a1a1a;}
+  @keyframes pop{from{opacity:0; transform:translateY(6px) scale(.98);} to{opacity:1;}}
+  .typing{align-self:flex-start; background:var(--in); border-radius:10px; padding:12px 14px; display:none;}
+  .typing.show{display:block;}
+  .typing span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin:0 2px;animation:blink 1.2s infinite;}
+  .typing span:nth-child(2){animation-delay:.2s;}
+  .typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,60%,100%{opacity:.3;}30%{opacity:1;}}
+  .inputbar{background:var(--wa-header); padding:10px 12px; display:flex; gap:8px; align-items:center;}
+  .inputbar input{flex:1; background:var(--in); border:none; outline:none; color:var(--txt);
+    padding:11px 16px; border-radius:22px; font-size:14.5px;}
+  .inputbar button{background:var(--accent); border:none; width:44px;height:44px;border-radius:50%;
+    color:#fff; font-size:18px; cursor:pointer; display:flex;align-items:center;justify-content:center;}
+  .inputbar button:active{transform:scale(.92);}
+  .quick{display:flex; gap:8px; flex-wrap:wrap; padding:8px 12px 0; max-width:430px; width:100%;}
+  .quick button{background:#16161a; border:1px solid var(--gold); color:var(--gold);
+    padding:7px 13px; border-radius:18px; font-size:12.5px; cursor:pointer; transition:.15s;}
+  .quick button:hover{background:var(--gold); color:#1a1a1a;}
+  .footer{max-width:430px;width:100%;text-align:center;color:#555;font-size:11px;margin-top:14px;}
+</style>
+</head>
+<body>
+
+  <div class="brand">
+    <div class="dot"></div>
+    <h1>Iberia Growth</h1>
+    <span>· Demo del asistente para LauraDiet</span>
+  </div>
+
+  <div class="nota">
+    👋 Esto es una <b>recreación</b> del asistente que atenderá tu WhatsApp y conectará con tu web.
+    Escribe como lo haría un paciente (pedir cita, preguntar precios, reservar desde la web…) y mira cómo responde y <b>agenda solo</b>.
+  </div>
+
+  <div class="phone">
+    <div class="header">
+      <div class="avatar">LD</div>
+      <div class="info">
+        <div class="name">LauraDiet · Nutrición</div>
+        <div class="status">en línea · responde al instante</div>
+      </div>
+      <div class="ico">⋮</div>
+    </div>
+
+    <div class="chat" id="chat">
+      <div class="day">HOY</div>
+      <div class="sys">💬 Un paciente llega desde tu web o por WhatsApp. El asistente le atiende y le agenda, sin que tengas que estar pendiente.</div>
+    </div>
+
+    <div class="typing" id="typing"><span></span><span></span><span></span></div>
+
+    <div class="inputbar">
+      <input id="input" type="text" placeholder="Escribe un mensaje" autocomplete="off">
+      <button id="send">➤</button>
+    </div>
+  </div>
+
+  <div class="quick" id="quick">
+    <button data-q="Hola, quería pedir cita con la nutricionista">📅 Pedir cita</button>
+    <button data-q="Vengo desde vuestra web a reservar">🌐 Reservar desde la web</button>
+    <button data-q="¿Cuánto cuesta la consulta?">💶 Precio</button>
+    <button data-q="Ya soy paciente y quiero otra cita">🔁 Paciente que vuelve</button>
+    <button data-q="¿Hacéis consulta online?">💻 Online</button>
+    <button data-q="Necesito cambiar mi cita">🔄 Cambiar cita</button>
+  </div>
+
+  <div class="footer">Demo · Iberia Growth · No es el sistema real, es una recreación para mostrar el funcionamiento.</div>
+
+<script>
+const chat=document.getElementById('chat'), typing=document.getElementById('typing'),
+      input=document.getElementById('input'), send=document.getElementById('send');
+function ahora(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function scroll(){chat.scrollTop=chat.scrollHeight;}
+function addUser(t){const m=document.createElement('div');m.className='msg out';
+  m.innerHTML=t.replace(/</g,'&lt;')+'<span class="t">'+ahora()+' ✓✓</span>';chat.appendChild(m);scroll();}
+function addBot(html,badge){const m=document.createElement('div');m.className='msg in';let b='';
+  if(badge==='cita') b='<span class="badge b-cita">CITA AGENDADA</span><br>';
+  if(badge==='info') b='<span class="badge b-info">INFORMACIÓN</span><br>';
+  if(badge==='pers') b='<span class="badge b-pers">TE PASO CON EL EQUIPO</span><br>';
+  m.innerHTML=b+html+'<span class="t">'+ahora()+'</span>';chat.appendChild(m);scroll();}
+function addSys(t){const s=document.createElement('div');s.className='sys';s.textContent=t;chat.appendChild(s);scroll();}
+
+function responder(txt){
+  const t=txt.toLowerCase(); const has=(...w)=>w.some(x=>t.includes(x));
+
+  // RESERVAR DESDE LA WEB (lo diferencial de LauraDiet)
+  if(has('web','página','pagina','desde vuestra','desde tu web','online no','reservar desde')){
+    return {badge:'', sys:'🌐 La reserva entra desde la web y abre esta conversación, sin salir de tu marca.',
+      html:'¡Bienvenida/o! 😊 Veo que vienes desde nuestra web. Aquí mismo te ayudo a reservar, sin que tengas que ir a ningún otro sitio.\n\n¿Es tu <b>primera consulta</b> con nosotras o ya eres paciente? Y dime tu <b>nombre</b>, por favor.'};
+  }
+  // CITA
+  if(has('cita','reservar','reserva','agendar','pedir hora','coger hora','primera consulta','apuntarme')){
+    return {badge:'cita', sys:'📋 El asistente propone hueco y agenda la cita en tu agenda.',
+      html:'¡Claro! Te ayudo a reservar tu consulta. 🥗\n\nTengo estos huecos disponibles esta semana:\n• <b>Martes 10:00</b>\n• <b>Miércoles 17:30</b>\n• <b>Viernes 12:00</b>\n\n¿Cuál te viene mejor? Dime tu <b>nombre</b> y te la dejo agendada al momento.'};
+  }
+  // PACIENTE QUE VUELVE
+  if(has('ya soy','vuelvo','otra cita','soy paciente','siguiente cita','revisión','revision','seguimiento')){
+    return {badge:'cita', sys:'🔁 Reconoce al paciente y solo le pide lo justo.',
+      html:'¡Qué bien tenerte de vuelta! 🙌 Como ya eres paciente, no necesito tus datos otra vez.\n\n¿Quieres tu cita de seguimiento para la <b>próxima semana</b>, en el día y hora de siempre? Te la dejo lista en un momento.'};
+  }
+  // PRECIO
+  if(has('precio','cuesta','cuánto','cuanto','vale','tarifa','coste','pagar','bono','sesión')){
+    return {badge:'info',
+      html:'Te paso la información:\n\n💶 <b>Primera consulta + plan personalizado:</b> 60 €\n💶 <b>Consulta de seguimiento:</b> 40 €\n💶 <b>Bono de 4 seguimientos:</b> 140 €\n\nIncluye tu plan nutricional adaptado. ¿Quieres que te agende la primera consulta?'};
+  }
+  // ONLINE
+  if(has('online','videollamada','a distancia','por videoll','no presencial','telemátic')){
+    return {badge:'info',
+      html:'¡Sí! 💻 Atendemos tanto <b>presencial</b> como <b>online</b> por videollamada, con el mismo seguimiento y plan personalizado.\n\n¿Prefieres tu consulta presencial u online? Te la agendo como quieras.'};
+  }
+  // CAMBIAR / ANULAR
+  if(has('cambiar','anular','cancelar','mover','aplazar','no puedo ir')){
+    return {badge:'',
+      html:'Sin problema, te ayudo a cambiar tu cita. 👍\n\nDime tu <b>nombre</b> y el día que tenías reservado, y te ofrezco nuevos huecos para reagendar al momento.'};
+  }
+  // HORARIO / UBICACIÓN
+  if(has('horario','hora','abrís','abris','dónde','donde','ubicaci','direcci','llegar')){
+    return {badge:'info',
+      html:'Estamos disponibles de <b>lunes a viernes, de 9:00 a 20:00</b>. 🕘\n\nAtendemos en consulta y también online. ¿Quieres que te reserve una cita?'};
+  }
+  // HABLAR CON PERSONA
+  if(has('persona','humano','hablar con','nutricionista en persona','laura','reclamac','queja')){
+    return {badge:'pers', sys:'🙋 El asistente deriva a una persona del equipo.',
+      html:'Por supuesto. 🙌 Esto se lo paso al equipo para que te atienda personalmente.\n\n¿Me dejas tu <b>nombre</b> y un <b>teléfono</b> para que te contacten?'};
+  }
+  // GRACIAS
+  if(has('gracias','genial','perfecto','vale','ok','adiós','adios','hasta luego')){
+    return {badge:'',
+      html:'¡A ti! 😊 Tu cita queda confirmada y te enviaremos un recordatorio antes. ¡Nos vemos pronto y a cuidarse! 🥗'};
+  }
+  // SALUDO
+  if(has('hola','buenas','buenos días','buenas tardes','hey','qué tal')){
+    return {badge:'',
+      html:'¡Hola! 👋 Soy el asistente de <b>LauraDiet</b>. Te ayudo a reservar tu cita, resolver dudas o lo que necesites — al instante.\n\n¿En qué te ayudo? Puedo darte <b>precios</b>, decirte si hay <b>consulta online</b> o <b>agendarte una cita</b> ahora mismo.'};
+  }
+  // DEFECTO
+  return {badge:'',
+    html:'Gracias por escribir a <b>LauraDiet</b>. 🥗 Te respondo al instante.\n\nPuedo ayudarte con:\n• 📅 Reservar una cita (primera o seguimiento)\n• 💶 Precios de las consultas\n• 💻 Consulta presencial u online\n• 🙋 Pasarte con el equipo\n\n¿Qué necesitas?'};
+}
+
+function enviar(txt){
+  if(!txt.trim())return; addUser(txt); input.value='';
+  typing.classList.add('show'); scroll();
+  const r=responder(txt); const delay=900+Math.min(txt.length*25,1200);
+  setTimeout(()=>{typing.classList.remove('show'); addBot(r.html,r.badge);
+    if(r.sys){setTimeout(()=>addSys(r.sys),500);}},delay);
+}
+send.addEventListener('click',()=>enviar(input.value));
+input.addEventListener('keydown',e=>{if(e.key==='Enter')enviar(input.value);});
+document.getElementById('quick').addEventListener('click',e=>{if(e.target.dataset.q)enviar(e.target.dataset.q);});
+setTimeout(()=>{typing.classList.add('show');scroll();
+  setTimeout(()=>{typing.classList.remove('show');
+    addBot('¡Hola! 👋 Soy el asistente de <b>LauraDiet</b>. Te atiendo al instante para reservar tu cita o resolver tus dudas.\n\n¿En qué puedo ayudarte?','');
+  },1100);},700);
+</script>
+</body>
+</html>
